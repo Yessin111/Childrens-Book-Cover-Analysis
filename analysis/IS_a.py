@@ -7,7 +7,7 @@ import spacy
 from analysis import ST
 
 
-def get_name_entity(data):
+def get_name_entity(data, count, n_ages):
     nlp = spacy.load("en_core_web_sm")
     labels = list(nlp.get_pipe("ner").labels)
     animals = ["alpaca", "ant", "armadillo", "baboon", "bat", "bear", "bear", "beaver", "butterfly", "cat", "cheetah",
@@ -22,12 +22,12 @@ def get_name_entity(data):
 
     results = []
 
-    for i in range(5):
+    for i in range(n_ages):
         results.append([])
         for j in range(len(labels)+1):
             results[i].append(0)
 
-    for i in range(5):
+    for i in range(n_ages):
         for caption in data[i]:
             this = 0
             for animal in animals:
@@ -36,7 +36,7 @@ def get_name_entity(data):
             for ent in doc.ents:
                 results[i][labels.index(ent.label_) + 1] = results[i][labels.index(ent.label_) + 1] + 1
 
-    for i in range(5):
+    for i in range(n_ages):
         total = 0
         for caption in data[i]:
             this = 0
@@ -45,16 +45,16 @@ def get_name_entity(data):
             total = total + this
         results[i][0] = total
 
-    return results
+    return results, ST.chi(results, count, n_ages, 19)
 
 
-def get_topic_list(data):
+def get_topic_list(data, count, n_ages, num_topics):
     language = 'english'
     stop_words = set(stopwords.words(language))
 
-    tokenized = [[], [], [], [], []]
+    tokenized = [[]] * n_ages
 
-    for i in range(5):
+    for i in range(n_ages):
         for caption in data[i]:
             words = word_tokenize(caption)
             tokenized[i].append([word for word in words if
@@ -68,56 +68,38 @@ def get_topic_list(data):
     dictionary = Dictionary(flat_list)
     corpus = [dictionary.doc2bow(caption) for caption in flat_list]
 
-    lda = LdaModel(corpus=corpus, id2word=dictionary, num_topics=10)
+    lda = LdaModel(corpus=corpus, id2word=dictionary, num_topics=num_topics)
     topics = lda.get_document_topics(corpus)
 
-    results = [[], [], [], [], []]
-    stat_test = [[], [], [], [], []]
+    results = [[]] * n_ages
 
-    for i in range(5):
-        for j in range(10):
+    for i in range(n_ages):
+        for j in range(num_topics):
             results[i].append(0)
-            stat_test[i].append([])
 
         for topic in topics:
             most_likely_topic = max(topic, key=lambda x: x[1])[0]
             results[i][most_likely_topic] = results[i][most_likely_topic] + 1
 
-            for x in range(10):
-                if x == most_likely_topic:
-                    stat_test[i][x].append(1)
-                else:
-                    stat_test[i][x].append(0)
-
-    stat_res = []
-
-    for i in range(10):
-        data = []
-
-        for j in range(5):
-            data.append(stat_test[j][i])
-
-        stat_res.append(ST.stat_test(data))
-
-    return results, stat_res
+    return results, ST.chi(results, count, n_ages, num_topics)
 
 
-def analyze(root, output_path):
-    count = [0, 0, 0, 0, 0]
-    captions = [[], [], [], [], []]
+def analyze(root, output_path, n_ages, num_topics):
+    count = [0] * n_ages
+    captions = [[]] * n_ages
 
     with open(root + output_path, 'r') as file_json:
         json_data = json.load(file_json)
 
         for row in json_data:
-            for i in range(5):
+            for i in range(n_ages):
                 if i in row["age"]:
                     count[i] = count[i] + 1
                     captions[i].append(row["IS"])
 
     res = {}
-    res["topic"] = get_topic_list(captions)
-    res["ner"] = get_name_entity(captions)
+    res["topic"] = get_topic_list(captions, count, n_ages, num_topics)
+    res["ner"] = get_name_entity(captions, count, n_ages)
 
     return res
 
