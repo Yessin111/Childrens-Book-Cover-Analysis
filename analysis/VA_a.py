@@ -18,10 +18,10 @@ def analyze(root, output_path):
                 if i in row["age"]:
                     count[i] = count[i] + 1
                     colors[i][row["VA"]["dominant_color_name"]] = colors[i].get(row["VA"]["dominant_color_name"], 0) + 1
-                    brightness[i].append(row["amazon"]["sq1"]["brightness"])
-                    colorfulness[i].append(row["amazon"]["sq1"]["colorfulness"]/200)
-                    contrast[i].append(row["amazon"]["sq1"]["contrast"] / 255)
-                    entropy[i].append(row["amazon"]["sq1"]["entropy"]/8)
+                    brightness[i].append(row["VA"]["brightness"])
+                    colorfulness[i].append(row["VA"]["colorfulness"]/200)
+                    contrast[i].append(row["VA"]["contrast"] / 255)
+                    entropy[i].append(row["VA"]["entropy"]/8)
 
     for i in range(5):
         colors[i] = sorted(colors[i].items(), key=lambda x: x[1], reverse=True)

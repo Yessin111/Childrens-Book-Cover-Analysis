@@ -25,7 +25,7 @@ def get_dominant_color(input_image):
     img = input_image
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.reshape((img.shape[0] * img.shape[1], 3))
-    kmeans = KMeans(9)
+    kmeans = KMeans(n_clusters=9, n_init="auto")
     kmeans.fit(img)
     color = abs(kmeans.cluster_centers_.round())[np.bincount(kmeans.labels_).argmax()]
     color = (int(color[0]), int(color[1]), int(color[2]))
