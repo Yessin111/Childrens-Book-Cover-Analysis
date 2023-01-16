@@ -84,10 +84,11 @@ def analyze(root, output_path, n_ages, num_topics):
         json_data = json.load(file_json)
 
         for row in json_data:
-            for i in range(n_ages):
-                if i in row["age"]:
-                    count[i] = count[i] + 1
-                    captions[i].append(row["IS"])
+            if "IS" in row:
+                for i in range(n_ages):
+                    if i in row["age"]:
+                        count[i] = count[i] + 1
+                        captions[i].append(row["IS"])
 
     res = {}
     res["topic"] = get_topic_list(captions, count, n_ages, num_topics)

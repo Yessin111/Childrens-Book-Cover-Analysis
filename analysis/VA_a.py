@@ -14,22 +14,23 @@ def analyze(root, output_path, n_ages):
         json_data = json.load(file_json)
 
         for row in json_data:
-            for i in range(n_ages):
-                if i in row["age"]:
-                    count[i] = count[i] + 1
-                    colors[i][row["VA"]["dominant_color_name"]] = colors[i].get(row["VA"]["dominant_color_name"], 0) + 1
-                    brightness[i].append(row["VA"]["brightness"])
-                    colorfulness[i].append(row["VA"]["colorfulness"]/200)
-                    contrast[i].append(row["VA"]["contrast"] / 255)
-                    entropy[i].append(row["VA"]["entropy"]/8)
+            if "VA" in row:
+                for i in range(n_ages):
+                    if i in row["age"]:
+                        count[i] = count[i] + 1
+                        colors[i][row["VA"]["dominant_color_name"]] = colors[i].get(row["VA"]["dominant_color_name"], 0) + 1
+                        brightness[i].append(row["VA"]["brightness"])
+                        colorfulness[i].append(row["VA"]["colorfulness"]/200)
+                        contrast[i].append(row["VA"]["contrast"] / 255)
+                        entropy[i].append(row["VA"]["entropy"]/8)
 
     for i in range(n_ages):
         colors[i] = sorted(colors[i].items(), key=lambda x: x[1], reverse=True)
 
     res = {}
-    res["stats_brightness"] = ST.anova_turkey(brightness)
-    res["stats_colorfulness"] = ST.anova_turkey(colorfulness)
-    res["stats_contrast"] = ST.anova_turkey(contrast)
-    res["stats_entropy"] = ST.anova_turkey(entropy)
+    res["stats_brightness"] = ST.anova_turkey(brightness, n_ages)
+    res["stats_colorfulness"] = ST.anova_turkey(colorfulness, n_ages)
+    res["stats_contrast"] = ST.anova_turkey(contrast, n_ages)
+    res["stats_entropy"] = ST.anova_turkey(entropy, n_ages)
 
     return res
